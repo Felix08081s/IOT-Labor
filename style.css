@@ -12,23 +12,32 @@ header {
     padding: 1rem;
 }
 
-#rooms {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    margin: 20px;
+#dashboard {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    padding: 20px;
 }
 
-.room {
+.room-card {
     background: white;
     border-radius: 8px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    margin: 10px;
     padding: 15px;
-    width: 250px;
     text-align: center;
+    cursor: pointer;
 }
 
-.slider {
-    width: 100%;
+.room-card h2 {
+    margin: 0;
+}
+
+.room-card .temp {
+    font-size: 1.5rem;
+    color: #ff9800;
+}
+
+.room-card .humidity {
+    font-size: 1rem;
+    color: #2196f3;
 }

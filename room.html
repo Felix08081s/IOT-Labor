@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raumdetails</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1 id="room-name">Raum</h1>
+    </header>
+
+    <main>
+        <p>Aktuelle Temperatur: <span id="current-temp">--</span>°C</p>
+        <p>Luftfeuchtigkeit: <span id="current-humidity">--</span>%</p>
+
+        <label for="temp-slider">Soll-Temperatur:</label>
+        <input type="range" id="temp-slider" min="16" max="28" value="22">
+        <p>Sollwert: <span id="target-temp">22</span>°C</p>
+    </main>
+
+    <script src="room.js"></script>
+</body>
+</html>

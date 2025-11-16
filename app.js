@@ -1,11 +1,26 @@
-document.addEventListener("DOMContentLoaded", () => {
-    const sliders = document.querySelectorAll(".slider");
-    const temps = document.querySelectorAll(".temp");
+console.log("app.js geladen");
 
-    sliders.forEach((slider, index) => {
-        slider.addEventListener("input", () => {
-            temps[index].textContent = slider.value + "°C";
-            // Später: Hier kannst du einen API-Call einbauen, um die Temperatur an das IoT-System zu senden
-        });
+const rooms = [
+    { name: "Wohnzimmer", temp: 22, humidity: 45 },
+    { name: "Schlafzimmer", temp: 19, humidity: 50 },
+    { name: "Bad", temp: 21, humidity: 60 }
+];
+
+const dashboard = document.getElementById("dashboard");
+
+rooms.forEach(room => {
+    const card = document.createElement("div");
+    card.className = "room-card";
+    card.innerHTML = `
+        <h2>${room.name}</h2>
+        <p class="temp">${room.temp}°C</p>
+        <p class="humidity">${room.humidity}%</p>
+    `;
+    
+    card.addEventListener("click", () => {
+        window.location.href =
+            `room.html?room=${encodeURIComponent(room.name)}&temp=${room.temp}&hum=${room.humidity}`;
     });
+
+    dashboard.appendChild(card);
 });
