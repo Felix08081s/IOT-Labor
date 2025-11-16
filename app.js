@@ -1,4 +1,11 @@
 console.log("app.js geladen");
+// einzelner Kommentar
+
+/*
+Mehrzeilen Kommentar
+*/
+
+
 
 const rooms = [
     { name: "Wohnzimmer", temp: 22, humidity: 45 },

@@ -41,3 +41,79 @@ header {
     font-size: 1rem;
     color: #2196f3;
 }
+
+
+/* Style für die Legende */
+.legend-container {
+    margin-top: 20px;
+    margin-left: 20px;
+    font-size: 0.9rem;
+    color: #444;
+}
+
+.legend-temp {
+    color: #ff9800;
+    margin-right: 15px;
+}
+
+.legend-hum {
+    color: #2196f3;
+}
+
+
+/* Home- Button */
+header {
+    position: relative;
+}
+
+.home-btn {
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.8rem;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.home-btn:hover {
+    transform: translateY(-50%) scale(1.1);
+}
+/* Schönere Darstellung der einzelnen Räume */
+.room-container {
+    max-width: 400px;
+    margin: 20px auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.info-card, .slider-card {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+    text-align: center;
+}
+
+.info-card h3 {
+    margin-top: 0;
+    color: #555;
+}
+
+.info-value {
+    font-size: 1.8rem;
+    margin: 10px 0 0 0;
+}
+
+.slider-card label {
+    display: block;
+    margin-bottom: 10px;
+    font-size: 1rem;
+}
+
+.slider-card input[type=range] {
+    width: 100%;
+}
+
+
