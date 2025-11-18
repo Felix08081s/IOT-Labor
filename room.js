@@ -1,84 +1,40 @@
-console.log("Room-Seite geladen");
-
-//
-// URL auslesen
-//
+// URL Parameter lesen
 const params = new URLSearchParams(window.location.search);
 const roomName = params.get("room");
-
 document.getElementById("room-name").textContent = roomName;
 
-//
-// 1. Dummy REST Call – Raumdaten
-//
-async function fetchRoomDetails() {
-    // später:
-    // return fetch(`/api/room/${roomName}`).then(r => r.json());
+// Dummy-REST laden
+const rooms = JSON.parse(localStorage.getItem("rooms")) || [];
+const devices = [
+    { id: "abc123", type: "temp", topic: "dummy/temp1" },
+    { id: "def456", type: "temp", topic: "dummy/temp2" },
+    { id: "ghi789", type: "hum", topic: "dummy/hum1" }
+];
 
-    return {
-        name: roomName,
-        temp: (20 + Math.random()*5).toFixed(1),
-        humidity: (40 + Math.random()*20).toFixed(0),
-        target: 22
-    };
-}
+const mqttListeners = window.mqttListeners;
 
-//
-// 2. MQTT Dummy Listener
-//
-function initMQTT() {
-    console.log("MQTT Dummy für Raum gestartet");
+// aktuellen Raum finden
+const room = rooms.find(r => r.name === roomName);
 
-    setInterval(() => {
-        let t = (20 + Math.random()*5).toFixed(1);
-        document.getElementById("current-temp").textContent = t;
-    }, 4000);
-}
+// MQTT Live-Daten
+room.devices.forEach(id => {
+    const dev = devices.find(d => d.id === id);
+    if (!dev) return;
 
-//
-// 3. Zieltemperatur setzen – REST Dummy
-//
-function sendTargetTemp(value) {
-    console.log(
-        `REST Dummy: Sollwert für ${roomName} gesetzt auf ${value}°C`
-    );
-
-    // später:
-    /*
-    fetch("/api/setTemperature", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({ room: roomName, temp: value })
+    mqttSubscribe(dev.topic, value => {
+        if (dev.type === "temp") {
+            document.getElementById("current-temp").textContent = value;
+        }
+        if (dev.type === "hum") {
+            document.getElementById("current-humidity").textContent = value;
+        }
     });
-    */
+});
 
-    // später MQTT:
-    // client.publish(`home/${roomName}/set/temp`, value);
-}
+// Slider
+const slider = document.getElementById("temp-slider");
+const targetTemp = document.getElementById("target-temp");
 
-//
-// 4. Initialisierung
-//
-async function init() {
-
-    // Daten von "REST"
-    const data = await fetchRoomDetails();
-    document.getElementById("current-temp").textContent = data.temp;
-    document.getElementById("current-humidity").textContent = data.humidity;
-
-    // Slider initialisieren
-    const slider = document.getElementById("temp-slider");
-    const target = document.getElementById("target-temp");
-
-    slider.value = data.target;
-    target.textContent = data.target;
-
-    slider.addEventListener("input", () => {
-        target.textContent = slider.value;
-        sendTargetTemp(slider.value);
-    });
-
-    initMQTT();
-}
-
-init();
+slider.oninput = () => {
+    targetTemp.textContent = slider.value;
+};

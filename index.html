@@ -4,29 +4,46 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mein Zuhause</title>
-
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <header>        
-        <h1>Mein Zuhause</h1>
-    </header>
 
-    <main id="dashboard"></main>
+<header>
+    <h1>Mein Zuhause</h1>
+</header>
 
-     <!--  Legende   -->
-            <div class="legend">
-                <span class="legend-temp">● Temperatur (°C)</span>
-                <span class="legend-hum">● Luftfeuchtigkeit (%)</span>
-            </div>
+<main>
+    <button id="add-room-btn" class="primary-btn">➕ Raum hinzufügen</button>
+    <button id="manage-devices-btn" class="primary-btn">🧩 Geräte verwalten</button>
 
+    <div id="dashboard"></div>
 
-<!--  Für echte MQTT Kommunikation   -->
-  <!-- <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>  --> 
+    <!-- Legende -->
+    <div class="legend-container">
+        <span class="legend-temp">● Temperatur (°C)</span>
+        <span class="legend-hum">● Luftfeuchtigkeit (%)</span>
+    </div>
+</main>
 
+<!-- Popup: Raum hinzufügen -->
+<div id="room-popup" class="popup hidden">
+    <div class="popup-box">
+        <h2>Raum erstellen</h2>
+        <input id="new-room-name" placeholder="Raumname eingeben">
+        <button id="save-room-btn" class="primary-btn">Speichern</button>
+        <button id="close-room-popup" class="secondary-btn">Abbrechen</button>
+    </div>
+</div>
 
-    <script src="app.js"></script>
+<!-- Popup: Geräte verwalten -->
+<div id="device-popup" class="popup hidden">
+    <div class="popup-box">
+        <h2>Geräte verwalten</h2>
+        <div id="device-list"></div>
+        <button id="close-device-popup" class="primary-btn">Schließen</button>
+    </div>
+</div>
+
+<script src="app.js"></script>
 </body>
 </html>
-
-<!--  Kommentar   -->
