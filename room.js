@@ -1,40 +1,45 @@
-// URL Parameter lesen
+const MQTT_WS = (location.hostname === "localhost")
+  ? "ws://localhost:9001"
+  : `ws://${location.hostname}:9001`;
+
 const params = new URLSearchParams(window.location.search);
 const roomName = params.get("room");
+
 document.getElementById("room-name").textContent = roomName;
 
-// Dummy-REST laden
-const rooms = JSON.parse(localStorage.getItem("rooms")) || [];
-const devices = [
-    { id: "abc123", type: "temp", topic: "dummy/temp1" },
-    { id: "def456", type: "temp", topic: "dummy/temp2" },
-    { id: "ghi789", type: "hum", topic: "dummy/hum1" }
-];
+async function initRoom() {
+    const r = await fetch(`/api/rooms/${roomName}/devices`);
+    const devices = await r.json();
 
-const mqttListeners = window.mqttListeners;
+    const client = mqtt.connect(MQTT_WS);
 
-// aktuellen Raum finden
-const room = rooms.find(r => r.name === roomName);
-
-// MQTT Live-Daten
-room.devices.forEach(id => {
-    const dev = devices.find(d => d.id === id);
-    if (!dev) return;
-
-    mqttSubscribe(dev.topic, value => {
-        if (dev.type === "temp") {
-            document.getElementById("current-temp").textContent = value;
-        }
-        if (dev.type === "hum") {
-            document.getElementById("current-humidity").textContent = value;
-        }
+    client.on("connect", () => {
+        devices.forEach(d => {
+            client.subscribe(`${d.topicBase || "home/devices/" + d.id}/state`);
+        });
     });
-});
 
-// Slider
-const slider = document.getElementById("temp-slider");
-const targetTemp = document.getElementById("target-temp");
+    client.on("message", (topic, msg) => {
+        const data = JSON.parse(msg.toString());
+        if (data.temperature !== undefined)
+            document.getElementById("current-temp").textContent = data.temperature;
+        if (data.humidity !== undefined)
+            document.getElementById("current-humidity").textContent = data.humidity;
+    });
 
-slider.oninput = () => {
-    targetTemp.textContent = slider.value;
-};
+    document.getElementById("temp-slider").oninput = async () => {
+        const val = document.getElementById("temp-slider").value;
+        document.getElementById("target-temp").textContent = val;
+
+        const actor = devices.find(d => d.capabilities?.includes("targetTemperature"));
+        if (!actor) return;
+
+        await fetch(`/api/devices/${actor.id}/set`, {
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body: JSON.stringify({ targetTemperature: Number(val) })
+        });
+    };
+}
+
+initRoom();

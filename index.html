@@ -1,49 +1,45 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mein Zuhause</title>
-    <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8" />
+    <title>SmartHome Dashboard</title>
+    <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
 <header>
-    <h1>Mein Zuhause</h1>
+    <h1>SmartHome Dashboard</h1>
+    <button id="new-room-btn">Raum erstellen</button>
+    <button id="manage-devices-btn">Geräte verwalten</button>
 </header>
 
-<main>
-    <button id="add-room-btn" class="primary-btn">➕ Raum hinzufügen</button>
-    <button id="manage-devices-btn" class="primary-btn">🧩 Geräte verwalten</button>
+<div id="dashboard" class="dashboard"></div>
 
-    <div id="dashboard"></div>
-
-    <!-- Legende -->
-    <div class="legend-container">
-        <span class="legend-temp">● Temperatur (°C)</span>
-        <span class="legend-hum">● Luftfeuchtigkeit (%)</span>
-    </div>
-</main>
-
-<!-- Popup: Raum hinzufügen -->
+<!-- Raum erstellen Popup -->
 <div id="room-popup" class="popup hidden">
-    <div class="popup-box">
-        <h2>Raum erstellen</h2>
-        <input id="new-room-name" placeholder="Raumname eingeben">
-        <button id="save-room-btn" class="primary-btn">Speichern</button>
-        <button id="close-room-popup" class="secondary-btn">Abbrechen</button>
+    <div class="popup-inner">
+        <h2>Neuen Raum erstellen</h2>
+        <input type="text" id="new-room-name" placeholder="Raumname" />
+        <button id="save-room-btn">Speichern</button>
+        <button onclick="document.getElementById('room-popup').classList.add('hidden')">Abbrechen</button>
     </div>
 </div>
 
-<!-- Popup: Geräte verwalten -->
-<div id="device-popup" class="popup hidden">
-    <div class="popup-box">
+<!-- Geräte Popup -->
+<div id="devices-popup" class="popup hidden">
+    <div class="popup-inner">
         <h2>Geräte verwalten</h2>
-        <div id="device-list"></div>
-        <button id="close-device-popup" class="primary-btn">Schließen</button>
+        <div id="devices-list"></div>
+        <h3>Alias setzen</h3>
+        <select id="alias-device-select"></select>
+        <input id="alias-input" placeholder="Alias" />
+        <button id="alias-save-btn">Speichern</button>
+        <button onclick="document.getElementById('devices-popup').classList.add('hidden')">Schließen</button>
     </div>
 </div>
 
+<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 <script src="app.js"></script>
+
 </body>
 </html>

@@ -1,125 +1,63 @@
 body {
     font-family: Arial, sans-serif;
     margin: 0;
-    padding: 0;
-    background: #f4f4f4;
+    background: #f2f2f2;
 }
 
 header {
-    background: #0078d7;
-    color: white;
-    text-align: center;
-    padding: 1rem;
+    background: #333;
+    color: #fff;
+    padding: 20px;
 }
 
-#dashboard {
+header h1 {
+    display: inline-block;
+    margin-right: 20px;
+}
+
+header button {
+    padding: 10px;
+    margin-left: 10px;
+}
+
+.dashboard {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 15px;
+    gap: 20px;
     padding: 20px;
+    grid-template-columns: repeat(auto-fill, 250px);
 }
 
 .room-card {
     background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    border-radius: 10px;
     padding: 15px;
-    text-align: center;
-    cursor: pointer;
-}
-
-.room-card h2 {
-    margin: 0;
-}
-
-.room-card .temp {
-    font-size: 1.5rem;
-    color: #ff9800;
-}
-
-.room-card .humidity {
-    font-size: 1rem;
-    color: #2196f3;
-}
-
-
-/* Style für die Legende */
-.legend-container {
-    margin-top: 20px;
-    margin-left: 20px;
-    font-size: 0.9rem;
-    color: #444;
-}
-
-.legend-temp {
-    color: #ff9800;
-    margin-right: 15px;
-}
-
-.legend-hum {
-    color: #2196f3;
-}
-
-
-/* Home- Button */
-header {
-    position: relative;
-}
-
-.home-btn {
-    position: absolute;
-    left: 20px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 1.8rem;
     cursor: pointer;
     transition: 0.2s;
 }
-
-.home-btn:hover {
-    transform: translateY(-50%) scale(1.1);
-}
-/* Schönere Darstellung der einzelnen Räume */
-.room-container {
-    max-width: 400px;
-    margin: 20px auto;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
+.room-card:hover {
+    transform: scale(1.03);
 }
 
-.info-card, .slider-card {
-    background: white;
-    border-radius: 10px;
-    padding: 20px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
-    text-align: center;
+.alias-tag {
+    display: inline-block;
+    background: #ddd;
+    padding: 4px 8px;
+    border-radius: 6px;
+    margin-right: 4px;
+    font-size: 0.8em;
 }
 
-.info-card h3 {
-    margin-top: 0;
-    color: #555;
+.temp {
+    font-size: 2em;
 }
 
-.info-value {
-    font-size: 1.8rem;
-    margin: 10px 0 0 0;
+.humidity {
+    font-size: 1.5em;
 }
 
-.slider-card label {
-    display: block;
-    margin-bottom: 10px;
-    font-size: 1rem;
-}
-
-.slider-card input[type=range] {
-    width: 100%;
-}
-
-/* Popup Stil */
 .popup {
     position: fixed;
-    inset: 0;
+    top: 0; left: 0; right: 0; bottom: 0;
     background: rgba(0,0,0,0.4);
     display: flex;
     justify-content: center;
@@ -130,10 +68,9 @@ header {
     display: none;
 }
 
-.popup-box {
+.popup-inner {
     background: white;
-    padding: 20px;
+    padding: 30px;
     border-radius: 10px;
     width: 300px;
 }
-
