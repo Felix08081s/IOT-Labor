@@ -3,27 +3,47 @@
 <head>
     <meta charset="UTF-8" />
     <title>Raum</title>
+
+     <!-- CSS für Layout & Stil -->
     <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
 <header>
+    <!-- Der Raumname wird dynamisch durch room.js gesetzt -->
     <h1 id="room-name">Raum</h1>
+
+    <!-- Zurück zum Dashboard -->
     <button onclick="window.location.href='index.html'">Zurück</button>
 </header>
 
+
+<!-- ======================================================================= -->
+<!-- Anzeige der Live-Sensordaten des Raumes -->
 <div class="room-stats">
     <p>Temperatur: <span id="current-temp">--</span> °C</p>
     <p>Luftfeuchtigkeit: <span id="current-humidity">--</span> %</p>
 </div>
 
+
+<!-- ======================================================================= -->
+<!-- Steuerbox, um eine Zieltemperatur festzulegen -->
 <div class="control-box">
     <h3>Temperatur einstellen</h3>
+
+    <!-- Slider für Soll-Temperatur -->
     <input type="range" min="15" max="30" id="temp-slider"/>
+
+    <!-- Anzeige des ausgewählten Zielwertes -->
     <p>Ziel: <span id="target-temp">--</span> °C</p>
 </div>
 
+<!-- ======================================================================= -->
+
+<!-- MQTT JavaScript Client Bibliothek -->
 <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+
+<!-- Raum-spezifische Logik (MQTT + UI-Interaktionen) -->
 <script src="room.js"></script>
 
 </body>

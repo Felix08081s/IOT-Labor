@@ -2,43 +2,77 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8" />
+    <!-- Titel (Web-Tab) -->
     <title>SmartHome Dashboard</title>
+
+    <!-- Einbindung des Designs -->
     <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
 <header>
     <h1>SmartHome Dashboard</h1>
+    
+    <!-- Button zum Öffnen des Popup-Fensters für das Erstellen eines Raumes -->
     <button id="new-room-btn">Raum erstellen</button>
+
+    <!-- Button zum Öffnen des Popup-Fensters für das Geräte-Management -->
     <button id="manage-devices-btn">Geräte verwalten</button>
 </header>
 
+<!-- Hauptcontainer: hier werden dynamisch Räume/Module eingefügt -->
 <div id="dashboard" class="dashboard"></div>
 
-<!-- Raum erstellen Popup -->
+<!-- ================================================================= -->
+<!-- Popup: Neuen Raum erstellen -->
+<!-- Dieses Popup erscheint, wenn der Benutzer "Raum erstellen" klickt -->
+<!-- Hidden = Standardmäßig unsichtbar -->
 <div id="room-popup" class="popup hidden">
     <div class="popup-inner">
         <h2>Neuen Raum erstellen</h2>
+
+         <!-- Textfeld für den neuen Raumnamen -->
         <input type="text" id="new-room-name" placeholder="Raumname" />
+
+         <!-- Button: Raum speichern -->
         <button id="save-room-btn">Speichern</button>
+
+        <!-- Button: Popup schließen -->
         <button onclick="document.getElementById('room-popup').classList.add('hidden')">Abbrechen</button>
     </div>
 </div>
 
-<!-- Geräte Popup -->
+<!-- ============================================================= -->
+<!-- Popup: Geräte verwalten -->
+<!-- Hier werden alle IoT-Geräte angezeigt und Alias-Namen gesetzt -->
 <div id="devices-popup" class="popup hidden">
     <div class="popup-inner">
         <h2>Geräte verwalten</h2>
+
+        <!-- Liste der verfügbaren Geräte (wird von app.js gefüllt) -->
         <div id="devices-list"></div>
         <h3>Alias setzen</h3>
+
+        <!-- Dropdown zur Auswahl des Geräts -->
         <select id="alias-device-select"></select>
+
+        <!-- Eingabe des neuen Alias -->
         <input id="alias-input" placeholder="Alias" />
+
+        <!-- Alias speichern Button -->
         <button id="alias-save-btn">Speichern</button>
+
+        <!-- Popup schließen -->
         <button onclick="document.getElementById('devices-popup').classList.add('hidden')">Schließen</button>
     </div>
 </div>
 
+<!-- ===================================================== -->
+
+<!-- MQTT Client Bibliothek für Browser -->
 <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+
+<!-- Hauptlogik der Anwendung -->
 <script src="app.js"></script>
 
 </body>
