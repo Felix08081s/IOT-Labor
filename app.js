@@ -13,7 +13,7 @@ let rooms = [];
 // =====================================================================
 //  MQTT HANDLING
 //  Sobald MQTT Connected ist, abonniert das Dashboard alle device 
-//  State Topics
+//  State Topics subscriben
 // =====================================================================
 client.on("connect", () => {
     console.log("MQTT WebSocket connected");
@@ -41,6 +41,7 @@ client.on("message", (topic, msg) => {
 // =====================================================================
 //  REST LOADER
 //  Wird nur beim Initialen Laden oder wenn Raum/Alias geändert werden aufgerufen
+// Standard von fetch ist immer GET, deswegen muss das nicht extra angegeben werden
 // =====================================================================
 async function loadDevices() {
     const r = await fetch("/api/devices");
@@ -51,13 +52,21 @@ async function loadRooms() {
     const r = await fetch("/api/rooms");
     rooms = await r.json();
 }
+// =====================================================================
+//  ducument.getElementByID
+    // document: steht für das ganze HTML - Dokument
+    // getElementById("dashboard"): sucht im Dokument das Element mit id="dashboard"
+    // Rückgabe: <div id="dashboard">...</div> oder null
+    // -> holt div aus HTML und ändert seinen Inhalt
+    // div ist ein Container in HTML, um Bereiche zu gruppieren und später per JS/CSS zu gestalten
+// =====================================================================
 
 // =====================================================================
 //  DASHBOARD BUILDER
 // =====================================================================
 function updateDashboardOnly() {
     const dash = document.getElementById("dashboard");
-    dash.innerHTML = "";
+    dash.innerHTML = ""; // dashboard Container leeren
 
     // Raum Karten erstellen
     // Enthält - Zugehörige Geräte
@@ -98,6 +107,7 @@ function updateDashboardOnly() {
     });
 }
 
+// Beim Start einmal alles laden und Dashboard zeichnen
 async function buildDashboard() {
     await loadDevices();
     await loadRooms();
@@ -111,9 +121,11 @@ buildDashboard();
 //  UI: ROOM CREATION
 //  Ruft die Backend API auf, erstellt neuen Raum, danach Dashboard neu laden
 // =====================================================================
+// Popup öffnen
 document.getElementById("new-room-btn").onclick = () =>
     document.getElementById("room-popup").classList.remove("hidden");
 
+// Raumname aus Input holen und ans Backend schicken (POST)
 document.getElementById("save-room-btn").onclick = async () => {
     const name = document.getElementById("new-room-name").value;
     if (!name) return;
@@ -131,11 +143,14 @@ document.getElementById("save-room-btn").onclick = async () => {
 // =====================================================================
 //  DEVICE MANAGEMENT
 // =====================================================================
+// Geräte-Popup öffnen und Liste laden
 document.getElementById("manage-devices-btn").onclick = () => {
     loadDeviceManagement();
     document.getElementById("devices-popup").classList.remove("hidden");
 };
 
+// Alle Geräte in der Liste zeigen
+// Dropdown für Alias füllen
 async function loadDeviceManagement() {
     await loadDevices();
     await loadRooms();

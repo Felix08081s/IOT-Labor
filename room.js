@@ -81,6 +81,19 @@ async function initRoom() {
             body: JSON.stringify({ targetTemperature: Number(val) })
         });
     };
+    // Raum löschen Button
+  const deleteBtn = document.getElementById("delete-room-btn");
+  if (deleteBtn) {
+    deleteBtn.onclick = async () => {
+      if (!confirm(`Raum "${roomName}" wirklich löschen?`)) return;
+        // encodeURIComponent für gültigen URL falls Raumname z.B. aus 2 Wörtern besteht
+      await fetch(`/api/rooms/${encodeURIComponent(roomName)}`, {
+        method: "DELETE"
+      });
+
+      window.location.href = "index.html";
+    };
+  }
 }
 
 // Skript starten
