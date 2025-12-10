@@ -178,6 +178,28 @@ async function loadDeviceManagement() {
         opt.innerText = d.alias || d.id;
         sel.appendChild(opt);
     });
+
+    // Geräte den Räumen zuordnen
+    rooms.forEach(r => {
+    const opt = document.createElement("option");
+    opt.value = r.name;
+    opt.textContent = r.name;
+    document.getElementById("assign-room-select").appendChild(opt);
+    });
+
+    document.getElementById("assign-device-btn").onclick = async () => {
+    const deviceId = document.getElementById("alias-device-select").value;
+    const roomName = document.getElementById("assign-room-select").value;
+    
+    await fetch(`/api/rooms/${encodeURIComponent(roomName)}/assign`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ deviceId })
+    });
+    
+    buildDashboard(); // Neu laden
+    };
+
 }
 
 document.getElementById("alias-save-btn").onclick = async () => {
