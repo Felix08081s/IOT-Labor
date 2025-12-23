@@ -355,18 +355,33 @@ header button:hover {
 }
 
 /* Geräte Liste in der Raum-Detailseite */
-.room-device-row {
+.room-devices-grid {
+  margin: 16px 32px 32px;
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+}
+
+.room-device-card {
+  background: radial-gradient(circle at top left, #1f2937 0, #020617 70%);
+  border-radius: 14px;
+  padding: 12px 14px;
+  border: 1px solid rgba(148,163,184,0.25);
+  box-shadow: 0 12px 25px rgba(15,23,42,0.6);
+}
+
+.rd-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin: 4px 32px;
-  padding: 6px 10px;
-  border-radius: 10px;
-  border: 1px solid rgba(148,163,184,0.3);
-  color: var(--text-muted);
+  margin-bottom: 8px;
 }
 
-.room-device-row button {
+.rd-name {
+  font-size: 0.95rem;
+}
+
+.rd-remove-btn {
   border-radius: 999px;
   border: 1px solid rgba(148,163,184,0.6);
   background: rgba(15,23,42,0.9);
@@ -375,4 +390,21 @@ header button:hover {
   cursor: pointer;
   font-size: 0.8rem;
 }
+
+.rd-values {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  color: var(--text-muted);
+}
+
+.rd-temp {
+  font-size: 1.3rem;
+  font-weight: 500;
+}
+
+.rd-hum {
+  font-size: 1rem;
+}
+
 

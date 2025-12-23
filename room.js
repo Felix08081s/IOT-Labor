@@ -1,19 +1,26 @@
-// MQTT URL
+// ==========================================================
+// MQTT WebSocket URL bestimmen
+// ==========================================================
 const MQTT_WS = (location.hostname === "localhost")
   ? "ws://localhost:9001"
   : `ws://${location.hostname}:9001`;
 
-// Raumname aus URL
+// ==========================================================
+// Raumname aus URL lesen und im UI anzeigen
+// ==========================================================
 const params = new URLSearchParams(window.location.search);
 const roomName = params.get("room");
 document.getElementById("room-name").textContent = roomName;
 
-// "Single Source of Truth" für den Raum
+// Gemeinsamer Zustand für diesen Raum
 let roomDevices = [];
-let client = null;
+let mqttClient = null;
 
+// ==========================================================
+// Raum initial laden: Räume + Geräte + MQTT
+// ==========================================================
 async function initRoom() {
-  // Räume laden und Raum finden
+  // Räume laden und passenden Raum finden
   const roomsRes = await fetch("/api/rooms");
   const rooms = await roomsRes.json();
   const room = rooms.find(r => r.name === roomName);
@@ -22,7 +29,7 @@ async function initRoom() {
     return;
   }
 
-  // Geräte dieses Raums laden (inkl. lastState)
+  // Geräte dieses Raums laden (mit lastState)
   const devRes = await fetch(`/api/rooms/${encodeURIComponent(roomName)}/devices`);
   roomDevices = await devRes.json();
 
@@ -30,47 +37,52 @@ async function initRoom() {
   renderRoom();
 
   // MQTT verbinden
-  client = mqtt.connect(MQTT_WS);
+  mqttClient = mqtt.connect(MQTT_WS);
 
-  client.on("connect", () => {
-    // Alle state-Topics der Raumgeräte abonnieren
+  mqttClient.on("connect", () => {
+    console.log("MQTT connected in room view");
+    // Alle State-Topics der Geräte dieses Raums abonnieren
     roomDevices.forEach(d => {
       const base = d.topicBase || `home/devices/${d.id}`;
-      client.subscribe(`${base}/state`);
+      mqttClient.subscribe(`${base}/state`);
     });
   });
 
-  // Eingehende MQTT-Nachrichten: internes Array aktualisieren + neu rendern
-  client.on("message", (topic, msg) => {
+  // Live-Updates verarbeiten
+  mqttClient.on("message", (topic, msg) => {
     try {
       const data = JSON.parse(msg.toString());
-      const parts = topic.split("/");      // home, devices, <id>, state
+      const parts = topic.split("/"); // home/devices/<id>/state
       const id = parts[2];
       const dev = roomDevices.find(d => d.id === id);
       if (!dev) return;
+
       dev.lastState = data;
       renderRoom();
     } catch (e) {
-      console.warn("MQTT parse error:", e);
+      console.warn("MQTT parse error in room:", e);
     }
   });
 
-  // Zieltemperatur-Slider (optional wie gehabt)
-  document.getElementById("temp-slider").oninput = async () => {
-    const val = document.getElementById("temp-slider").value;
-    document.getElementById("target-temp").textContent = val;
+  // Zieltemperatur-Slider (wie bisher)
+  const slider = document.getElementById("temp-slider");
+  if (slider) {
+    slider.oninput = async () => {
+      const val = slider.value;
+      document.getElementById("target-temp").textContent = val;
 
-    const actor = roomDevices.find(d => d.capabilities?.includes("targetTemperature"));
-    if (!actor) return;
+      const actor = roomDevices.find(d => d.capabilities?.includes("targetTemperature"));
+      if (!actor) return;
 
-    await fetch(`/api/devices/${actor.id}/set`, {
-      method: "POST",
-      headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({ targetTemperature: Number(val) })
-    });
-  };
+      await fetch(`/api/devices/${actor.id}/set`, {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ targetTemperature: Number(val) })
+      });
+    };
+  }
 
-  // Raum löschen Button (wie gehabt)
+  // Raum löschen Button
   const deleteBtn = document.getElementById("delete-room-btn");
   if (deleteBtn) {
     deleteBtn.onclick = async () => {
@@ -83,11 +95,18 @@ async function initRoom() {
   }
 }
 
-// Zeichnet Durchschnitt + Kacheln aus roomDevices
+// ==========================================================
+// UI-Rendering: Durchschnitt + Geräte-Kacheln
+// ==========================================================
+async function reloadRoomDevices() {
+  const devRes = await fetch(`/api/rooms/${encodeURIComponent(roomName)}/devices`);
+  roomDevices = await devRes.json();
+}
+
 function renderRoom() {
-  const stats = document.getElementById("room-stats");
+  const statsEl = document.getElementById("room-stats");
   const container = document.getElementById("room-devices");
-  if (!stats || !container) return;
+  if (!statsEl || !container) return;
 
   // Durchschnitt berechnen
   const temps = roomDevices
@@ -104,8 +123,8 @@ function renderRoom() {
     ? (hums.reduce((a, b) => a + b, 0) / hums.length).toFixed(1)
     : "--";
 
-  // Oben: Durchschnitt
-  stats.innerHTML = `
+  // Oben: Durchschnitt (gleicher Wert wie im Dashboard)
+  statsEl.innerHTML = `
     <div>Temperatur: <span>${avgTemp}°C</span></div>
     <div>Luftfeuchte: <span>${avgHum}%</span></div>
   `;
@@ -133,7 +152,7 @@ function renderRoom() {
     container.appendChild(card);
   });
 
-  // Entfernen-Buttons neu verdrahten
+  // Entfernen-Buttons neu binden
   container.querySelectorAll(".rd-remove-btn").forEach(btn => {
     btn.onclick = async () => {
       const deviceId = btn.getAttribute("data-id");
@@ -142,13 +161,13 @@ function renderRoom() {
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify({ deviceId })
       });
-      // Raumgeräte neu laden (REST) und rendern
-      const devRes = await fetch(`/api/rooms/${encodeURIComponent(roomName)}/devices`);
-      roomDevices = await devRes.json();
+      await reloadRoomDevices();
       renderRoom();
     };
   });
 }
 
+// ==========================================================
 // Start
+// ==========================================================
 initRoom();
