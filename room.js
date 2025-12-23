@@ -1,100 +1,154 @@
-// ==========================================================
-// MQTT WebSocket URL bestimmen (abhängig vom Deployment)
-// ==========================================================
+// MQTT URL
 const MQTT_WS = (location.hostname === "localhost")
   ? "ws://localhost:9001"
   : `ws://${location.hostname}:9001`;
 
-// ==========================================================
-// Raumname aus URL lesen und im UI anzeigen
-// ==========================================================
+// Raumname aus URL
 const params = new URLSearchParams(window.location.search);
 const roomName = params.get("room");
-
 document.getElementById("room-name").textContent = roomName;
 
-// ==========================================================
-// Hauptfunktion: Geräte laden + MQTT verbinden + UI steuern
-// ==========================================================
-async function initRoom() {
+// "Single Source of Truth" für den Raum
+let roomDevices = [];
+let client = null;
 
-   // Räume laden und Raum finden
+async function initRoom() {
+  // Räume laden und Raum finden
   const roomsRes = await fetch("/api/rooms");
   const rooms = await roomsRes.json();
-
   const room = rooms.find(r => r.name === roomName);
   if (!room) {
     alert("Raum nicht gefunden: " + roomName);
     return;
   }
 
-  // Alle Geräte laden
-  const devRes = await fetch("/api/devices");
-  const allDevices = await devRes.json();
+  // Geräte dieses Raums laden (inkl. lastState)
+  const devRes = await fetch(`/api/rooms/${encodeURIComponent(roomName)}/devices`);
+  roomDevices = await devRes.json();
 
-  // Nur Geräte dieses Raums herausfiltern
-  const devices = allDevices.filter(d => room.devices.includes(d.id));
+  // Erste Anzeige aus REST-Daten
+  renderRoom();
 
-    // MQTT Client verbinden
-    const client = mqtt.connect(MQTT_WS);
+  // MQTT verbinden
+  client = mqtt.connect(MQTT_WS);
 
-    // ----------------------------------------------------------
-    // Sobald MQTT verbunden ist → alle Gerätetopics abonnieren
-    // ----------------------------------------------------------
-    client.on("connect", () => {
-        devices.forEach(d => {
-            // Jedes Gerät sendet seinen Zustand an <topicBase>/state
-            client.subscribe(`${d.topicBase || "home/devices/" + d.id}/state`);
-        });
+  client.on("connect", () => {
+    // Alle state-Topics der Raumgeräte abonnieren
+    roomDevices.forEach(d => {
+      const base = d.topicBase || `home/devices/${d.id}`;
+      client.subscribe(`${base}/state`);
     });
+  });
 
-    // ----------------------------------------------------------
-    // Eingehende MQTT Nachrichten verarbeiten (Live Sensorwerte)
-    // ----------------------------------------------------------
-    client.on("message", (topic, msg) => {
-        const data = JSON.parse(msg.toString());
+  // Eingehende MQTT-Nachrichten: internes Array aktualisieren + neu rendern
+  client.on("message", (topic, msg) => {
+    try {
+      const data = JSON.parse(msg.toString());
+      const parts = topic.split("/");      // home, devices, <id>, state
+      const id = parts[2];
+      const dev = roomDevices.find(d => d.id === id);
+      if (!dev) return;
+      dev.lastState = data;
+      renderRoom();
+    } catch (e) {
+      console.warn("MQTT parse error:", e);
+    }
+  });
 
-        // Temperatur aktualisieren, falls vorhanden
-        if (data.temperature !== undefined)
-            document.getElementById("current-temp").textContent = data.temperature;
+  // Zieltemperatur-Slider (optional wie gehabt)
+  document.getElementById("temp-slider").oninput = async () => {
+    const val = document.getElementById("temp-slider").value;
+    document.getElementById("target-temp").textContent = val;
 
-        // Luftfeuchtigkeit aktualisieren, falls vorhanden
-        if (data.humidity !== undefined)
-            document.getElementById("current-humidity").textContent = data.humidity;
+    const actor = roomDevices.find(d => d.capabilities?.includes("targetTemperature"));
+    if (!actor) return;
+
+    await fetch(`/api/devices/${actor.id}/set`, {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ targetTemperature: Number(val) })
     });
+  };
 
-    // ----------------------------------------------------------
-    // Slider zur Einstellung der Zieltemperatur
-    // ----------------------------------------------------------
-    document.getElementById("temp-slider").oninput = async () => {
-        const val = document.getElementById("temp-slider").value;
-        document.getElementById("target-temp").textContent = val;
-
-        // Passendes Gerät mit "targetTemperature" Fähigkeit finden
-        const actor = devices.find(d => d.capabilities?.includes("targetTemperature"));
-        if (!actor) return;
-
-        // Zieltemperatur über REST API setzen
-        await fetch(`/api/devices/${actor.id}/set`, {
-            method:"POST",
-            headers:{"Content-Type":"application/json"},
-            body: JSON.stringify({ targetTemperature: Number(val) })
-        });
-    };
-    // Raum löschen Button
+  // Raum löschen Button (wie gehabt)
   const deleteBtn = document.getElementById("delete-room-btn");
   if (deleteBtn) {
     deleteBtn.onclick = async () => {
       if (!confirm(`Raum "${roomName}" wirklich löschen?`)) return;
-        // encodeURIComponent für gültigen URL falls Raumname z.B. aus 2 Wörtern besteht
       await fetch(`/api/rooms/${encodeURIComponent(roomName)}`, {
         method: "DELETE"
       });
-
       window.location.href = "index.html";
     };
   }
 }
 
-// Skript starten
+// Zeichnet Durchschnitt + Kacheln aus roomDevices
+function renderRoom() {
+  const stats = document.getElementById("room-stats");
+  const container = document.getElementById("room-devices");
+  if (!stats || !container) return;
+
+  // Durchschnitt berechnen
+  const temps = roomDevices
+    .map(d => d.lastState?.temperature)
+    .filter(t => typeof t === "number");
+  const hums = roomDevices
+    .map(d => d.lastState?.humidity)
+    .filter(h => typeof h === "number");
+
+  const avgTemp = temps.length
+    ? (temps.reduce((a, b) => a + b, 0) / temps.length).toFixed(1)
+    : "--";
+  const avgHum = hums.length
+    ? (hums.reduce((a, b) => a + b, 0) / hums.length).toFixed(1)
+    : "--";
+
+  // Oben: Durchschnitt
+  stats.innerHTML = `
+    <div>Temperatur: <span>${avgTemp}°C</span></div>
+    <div>Luftfeuchte: <span>${avgHum}%</span></div>
+  `;
+
+  // Darunter: Kacheln für jedes Gerät
+  container.innerHTML = "";
+  roomDevices.forEach(d => {
+    const card = document.createElement("div");
+    card.className = "room-device-card";
+
+    const t = d.lastState?.temperature ?? "--";
+    const h = d.lastState?.humidity ?? "--";
+
+    card.innerHTML = `
+      <div class="rd-header">
+        <span class="rd-name">${d.alias || d.id}</span>
+        <button class="rd-remove-btn" data-id="${d.id}">✕</button>
+      </div>
+      <div class="rd-values">
+        <div class="rd-temp">${t}°C</div>
+        <div class="rd-hum">${h}%</div>
+      </div>
+    `;
+
+    container.appendChild(card);
+  });
+
+  // Entfernen-Buttons neu verdrahten
+  container.querySelectorAll(".rd-remove-btn").forEach(btn => {
+    btn.onclick = async () => {
+      const deviceId = btn.getAttribute("data-id");
+      await fetch(`/api/rooms/${encodeURIComponent(roomName)}/remove`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ deviceId })
+      });
+      // Raumgeräte neu laden (REST) und rendern
+      const devRes = await fetch(`/api/rooms/${encodeURIComponent(roomName)}/devices`);
+      roomDevices = await devRes.json();
+      renderRoom();
+    };
+  });
+}
+
+// Start
 initRoom();
