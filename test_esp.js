@@ -17,6 +17,12 @@ const devices = [
     model: "esp32-dht11",
     type: "sensor",
     capabilities: ["temperature", "humidity"]
+  },
+  {
+    id: "esp-3",
+    model: "esp32-dht11",
+    type: "sensor",
+    capabilities: ["temperature", "humidity"]
   }
 ];
 

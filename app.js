@@ -77,17 +77,32 @@ function updateDashboardOnly() {
 
         const assigned = devices.filter(d => room.devices.includes(d.id));
 
+         // Alle Temperatur-/Feuchte-Werte einsammeln
+        const temps = assigned
+        .map(d => d.lastState?.temperature)
+        .filter(t => typeof t === "number");
+        const hums = assigned
+        .map(d => d.lastState?.humidity)
+        .filter(h => typeof h === "number");
+
         let temp = "--";
         let hum = "--";
 
-        // Temperatur Luftfeuchtigkeit extrahieren
-        assigned.forEach(d => {
-            if (d.lastState?.temperature !== undefined)
-                temp = d.lastState.temperature;
+        if (temps.length === 1) {
+        // genau ein Gerät → dessen Wert
+        temp = temps[0].toFixed(1);
+        } else if (temps.length > 1) {
+        // mehrere Geräte → Durchschnitt
+        const sum = temps.reduce((a, b) => a + b, 0);
+        temp = (sum / temps.length).toFixed(1);
+        }
 
-            if (d.lastState?.humidity !== undefined)
-                hum = d.lastState.humidity;
-        });
+        if (hums.length === 1) {
+        hum = hums[0].toFixed(1);
+        } else if (hums.length > 1) {
+        const sumH = hums.reduce((a, b) => a + b, 0);
+        hum = (sumH / hums.length).toFixed(1);
+        }
 
         const tags = assigned
             .map(d => `<span class="alias-tag">${d.alias || d.id}</span>`)
@@ -157,9 +172,11 @@ async function loadDeviceManagement() {
 
     const list = document.getElementById("devices-list");
     const sel = document.getElementById("alias-device-select");
+      const roomSelect = document.getElementById("assign-room-select"); //xxx
 
     list.innerHTML = "";
     sel.innerHTML = "";
+      roomSelect.innerHTML = "";   // xxx
 
     devices.forEach(d => {
         const item = document.createElement("div");
@@ -184,7 +201,7 @@ async function loadDeviceManagement() {
     const opt = document.createElement("option");
     opt.value = r.name;
     opt.textContent = r.name;
-    document.getElementById("assign-room-select").appendChild(opt);
+      roomSelect.appendChild(opt); //xxx
     });
 
     document.getElementById("assign-device-btn").onclick = async () => {
